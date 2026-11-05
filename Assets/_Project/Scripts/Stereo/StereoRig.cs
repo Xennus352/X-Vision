@@ -31,9 +31,8 @@ namespace CardboardXR.Stereo
         [Tooltip("Anti-aliasing samples per eye texture: 1, 2, 4 or 8. The \"msaa\" launch option overrides it.")]
         [SerializeField, Range(1, 8)] int m_Msaa = 2;
         [SerializeField] Color m_BackgroundColor = new(0.1f, 0.1f, 0.12f);
-        [Tooltip("Android runs the display at the nearest refresh rate it supports, up to this. " +
-                 "The \"fps\" launch option overrides it.")]
-        [SerializeField] int m_TargetFrameRate = 120;
+        [Tooltip("The steady frame-rate ceiling. The \"fps\" launch option overrides it (it can raise it, but the app is tuned for 60).")]
+        [SerializeField] int m_TargetFrameRate = 60;
         [Tooltip("Keep the CPU at most one frame ahead of the GPU: lower latency, a little less throughput.")]
         [SerializeField] bool m_LowLatency = true;
         [Tooltip("Cardboard's alignment marker: a line up from the bottom center that lines up with the middle of the viewer.")]
@@ -50,6 +49,7 @@ namespace CardboardXR.Stereo
         readonly RenderTexture[] m_EyeTextures = new RenderTexture[2];
         readonly Mesh[] m_Meshes = new Mesh[2];
         readonly Material[] m_Materials = new Material[2];
+        bool m_LoggedMonoScale;
         Mesh m_MarkerMesh;
         Material m_MarkerMaterial;
         Texture2D m_MarkerTexture;
@@ -75,6 +75,49 @@ namespace CardboardXR.Stereo
                     return;
                 m_MonoEyes = value;
                 PlaceEyes();
+            }
+        }
+
+        // The eye render scale; DynamicResolutionScaler moves it with the GPU's frame time.
+        public float RenderScale => m_RenderScale;
+
+        // Rescales the eye textures to scale of the screen (clamped to 0.25-2). The eye cameras and
+        // the distortion materials are kept; only the textures are recreated. A mono camera draws
+        // straight to the screen and can't be rescaled this way, so it does nothing but updates the value.
+        public void SetRenderScale(float scale)
+        {
+            scale = Mathf.Clamp(scale, 0.25f, 2f);
+            if (Mathf.Approximately(scale, m_RenderScale))
+                return;
+            m_RenderScale = scale;
+            if (!isActiveAndEnabled)
+                return;
+            var rescaled = false;
+            for (var i = 0; i < 2; i++)
+            {
+                var camera = m_EyeCameras[i];
+                if (camera == null || camera.targetTexture == null)
+                    continue;
+                var eye = (Eye)i;
+                var texture = CreateEyeTexture(eye);
+                var old = m_EyeTextures[i];
+                m_EyeTextures[i] = texture;
+                camera.targetTexture = texture;
+                if (m_Materials[i] != null)
+                    m_Materials[i].mainTexture = texture;
+                if (old != null)
+                {
+                    old.Release();
+                    Destroy(old);
+                }
+                rescaled = true;
+            }
+            if (rescaled)
+                Debug.Log($"[Stereo] Render scale {scale:F2}");
+            else if (!m_LoggedMonoScale)
+            {
+                m_LoggedMonoScale = true;
+                Debug.Log("[Stereo] Render scale is fixed in mono: the camera draws straight to the screen");
             }
         }
 
@@ -124,6 +167,17 @@ namespace CardboardXR.Stereo
         }
 
         void OnDisable() => Teardown();
+
+        RenderTexture CreateEyeTexture(Eye eye)
+        {
+            var width = Mathf.Max(16, Mathf.RoundToInt(Screen.width * 0.5f * m_RenderScale));
+            var height = Mathf.Max(16, Mathf.RoundToInt(Screen.height * m_RenderScale));
+            return new RenderTexture(width, height, 24)
+            {
+                name = $"{eye} Eye",
+                antiAliasing = m_Msaa,
+            };
+        }
 
         // Switches between the two eyes through the viewer's lenses and one view on the whole screen.
         public void ToggleMono() => SetMono(!m_Mono);
@@ -204,13 +258,7 @@ namespace CardboardXR.Stereo
         void CreateEye(Eye eye)
         {
             var index = (int)eye;
-            var width = Mathf.Max(16, Mathf.RoundToInt(Screen.width * 0.5f * m_RenderScale));
-            var height = Mathf.Max(16, Mathf.RoundToInt(Screen.height * m_RenderScale));
-            m_EyeTextures[index] = new RenderTexture(width, height, 24)
-            {
-                name = $"{eye} Eye",
-                antiAliasing = m_Msaa,
-            };
+            m_EyeTextures[index] = CreateEyeTexture(eye);
 
             var eyeObject = new GameObject($"{eye} Eye");
             eyeObject.transform.SetParent(transform, false);

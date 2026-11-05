@@ -206,6 +206,12 @@ namespace CardboardXR.Hands
         // (RoomBoundary.PausesHands).
         public bool IsPaused => m_Room != null && m_Room.PausesHands;
 
+        // How often the landmarker runs, in seconds; 0 runs it on every image. HandTrackingThrottler
+        // moves this with the device's thermal state.
+        public float TrackInterval => m_TrackInterval;
+
+        public void SetTrackInterval(float seconds) => m_TrackInterval = Mathf.Max(0f, seconds);
+
         // Recent ARCore camera poses, to place each result with its own image's pose.
         readonly List<ArPoseSource.Sample> m_Poses = new();
         // Screen directions of the camera image's x and y axes.

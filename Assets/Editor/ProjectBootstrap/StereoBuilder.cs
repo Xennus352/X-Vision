@@ -206,6 +206,7 @@ namespace ProjectBootstrap
             var tracker = head.AddComponent<GyroHeadTracker>();
             head.AddComponent<FrameTimingLog>();
             head.AddComponent<PerformanceLog>();
+            head.AddComponent<DynamicResolutionScaler>();
             var (poseSource, origin, arCamera, arViewOnly) = BuildViewerSetup(rig);
             var fusion = head.AddComponent<HeadPoseFusion>();
             var passthrough = origin.AddComponent<PassthroughController>();
@@ -489,6 +490,11 @@ namespace ProjectBootstrap
             serializedRay.FindProperty("m_Interactor").objectReferenceValue = interactor;
             serializedRay.FindProperty("m_Material").objectReferenceValue = CreateMaterial("Hand Ray", unlit, Color.white, null);
             serializedRay.ApplyModifiedPropertiesWithoutUndo();
+
+            // Throttles the hand tracker at 30/24 Hz as the device heats up, and stops surface
+            // scanning once the room's initial surfaces are in. Both find their targets on this origin.
+            origin.AddComponent<HandTrackingThrottler>();
+            origin.AddComponent<SurfaceScanCleanup>();
 
             // The "pinchStudy" launch option's prompted run for tuning pinch detection.
             var study = origin.AddComponent<PinchStudy>();

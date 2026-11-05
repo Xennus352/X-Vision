@@ -110,6 +110,10 @@ namespace CardboardXR.Stereo
         // Whether a scan for surfaces is running.
         public bool IsScanning => m_Scanning;
 
+        // Whether the running scan is a room scan (ScanRoom, which a demo asked for) rather than the
+        // automatic floor scan; while one runs, planes must keep updating.
+        public bool IsRoomScan => m_Scanning && !m_StopWhenFloorFound;
+
         // What's been found: tracked surfaces big enough to count, their area in square meters, and
         // whether one is the floor.
         public int SurfaceCount => m_TrackedSurfaces;

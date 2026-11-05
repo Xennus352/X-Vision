@@ -10,7 +10,7 @@ namespace CardboardXR.Stereo
     // while the phone is unplugged for a walk-around test. The path is logged at startup.
     static class SessionLog
     {
-        static readonly string[] k_Tags = { "[Pose]", "[AR]", "[Room]", "[Anchor]", "[Hands]", "[Pinch]", "[Perf]", "[Passthrough]", "[Tracking]", "[Gaze]", "[Hitch]", "[Frames]", "[Stereo]", "[Viewer]", "[Demos]", "[Video]", "[Paint]", "[Rush]", "[Portal]", "[Settings]", "[Light]", "[Thermal]" };
+        static readonly string[] k_Tags = { "[Pose]", "[AR]", "[Room]", "[Anchor]", "[Hands]", "[Pinch]", "[Perf]", "[Passthrough]", "[Tracking]", "[Gaze]", "[Hitch]", "[Frames]", "[Stereo]", "[Viewer]", "[Demos]", "[Video]", "[Paint]", "[Rush]", "[Portal]", "[Settings]", "[Light]", "[Thermal]", "[Scan]" };
         // Unity's own warnings when job scratch memory outlives four frames, which the hand models on
         // the CPU cause whenever a run takes longer than that (on a Pixel 9 Pro at 60 Hz, most runs):
         // the memory is freed late, not lost. Written every time, they buried the log, three lines per
