@@ -1,3 +1,4 @@
+using CardboardXR.Hands;
 using CardboardXR.UI;
 using TMPro;
 using UnityEngine;
@@ -7,8 +8,11 @@ namespace CardboardXR.Demos.Portal
     // Open a doorway in your room and walk through it into another world. Look at the floor and
     // pinch: a portal stands there, facing you, anchored to the floor, with the world visible only
     // through it (see PortalWorld). Walk through the frame and you're in the world, with your room
-    // showing through the door behind you; walk back through to return. Runs in passthrough, which
-    // shows the room: so everything, the world included, is seen flat, the same picture in both eyes.
+    // showing through the door behind you; walk back through to return. A holographic solar system
+    // floats in the room: eight planets and the Moon circle the sun on faint rings with name labels;
+    // tap one for its vital stats, grab it with your hand or the gaze and throw it, scale and turn
+    // it with two hands. Runs in passthrough, which shows the room: so everything, the world
+    // included, is seen flat, the same picture in both eyes.
     // Walking through needs the phone off its cable. Move portal takes it down to put it somewhere
     // else. Logs [Portal].
     public class PortalDemo : Demo
@@ -31,6 +35,7 @@ namespace CardboardXR.Demos.Portal
             m_Audio.playOnAwake = false;
             m_Whoosh = Whoosh();
             BuildPanel();
+            BuildSolarSystem();
             UpdateHint();
             Debug.Log("[Portal] Ready: look at the floor and pinch to open a portal");
         }
@@ -88,12 +93,33 @@ namespace CardboardXR.Demos.Portal
 
         void UpdateHint()
         {
+            const string planetLine = "Tap a planet for its story; grab and throw it.\n";
             if (m_Portal == null)
-                m_Hint.text = "Look at the floor and pinch to open a portal there.\nNo highlight on the floor? Look down at it for a moment.";
+                m_Hint.text = planetLine + "Look at the floor and pinch to open a portal there.\nNo highlight on the floor? Look down at it for a moment.";
             else if (!m_Portal.IsInside)
-                m_Hint.text = "Walk through the doorway.\nUnplug the phone first if it's on a cable.";
+                m_Hint.text = planetLine + "Walk through the doorway.\nUnplug the phone first if it's on a cable.";
             else
-                m_Hint.text = "You're through. Look back: your room is behind the door.\nWalk back through to return.";
+                m_Hint.text = planetLine + "You're through. Look back: your room is behind the door.\nWalk back through to return.";
+        }
+
+        // The room-scale holographic orrery: floats about two meters ahead, a bit below eye level.
+        // The gestures (direct hand grab, gaze+pinch, two-hand scale and rotate, tap to select) and
+        // the info panel hang off it; leaving the demo destroys it all.
+        void BuildSolarSystem()
+        {
+            var head = m_Core.Head;
+            var forward = Vector3.ProjectOnPlane(head.forward, Vector3.up);
+            forward = forward.sqrMagnitude > 1e-6f ? forward.normalized : Vector3.forward;
+            var center = head.position + forward * 2.1f;
+            center.y = head.position.y - 0.55f;
+            var system = new GameObject("Solar System");
+            var holo = system.AddComponent<SolarSystemHologram>();
+            holo.Build(center);
+            var gestures = system.AddComponent<SolarSystemTwoHandController>();
+            holo.BindGestures(gestures);
+            var panel = new GameObject("Solar System Info Panel");
+            panel.AddComponent<SolarSystemInfoPanel>().Initialize(head);
+            Debug.Log("[Portal] Hologram ready: walk around it, tap a planet for its story");
         }
 
         // A small Material panel ahead and a little above, clear of the floor where the portal goes:
@@ -101,9 +127,9 @@ namespace CardboardXR.Demos.Portal
         void BuildPanel()
         {
             const float distance = 1.5f;
-            m_Panel = WorldUi.Panel("Portal Panel", transform, new Vector2(440f, 192f), distance);
-            m_Hint = M3.Text("Hint", m_Panel, "", M3Theme.Type.BodyLarge, new Vector2(0f, 36f), new Vector2(392f, 72f));
-            M3.Button("Move portal", m_Panel, "Move portal", M3Button.Variant.Tonal, new Vector2(0f, -44f), Move, "open_with");
+            m_Panel = WorldUi.Panel("Portal Panel", transform, new Vector2(460f, 244f), distance);
+            m_Hint = M3.Text("Hint", m_Panel, "", M3Theme.Type.BodyLarge, new Vector2(0f, 44f), new Vector2(412f, 150f));
+            M3.Button("Move portal", m_Panel, "Move portal", M3Button.Variant.Tonal, new Vector2(0f, -72f), Move, "open_with");
             WorldUi.PlaceInFront(m_Panel, m_Core.Head, distance, 8f, -25f);
         }
 

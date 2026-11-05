@@ -195,7 +195,6 @@ namespace CardboardXR.Demos.Portal
             Ground("Ground Front", front, 0f, k_BoxDepth - 1f);
             Ground("Ground Back", back, -(k_BoxDepth - 1f), 0f);
 
-            Sphere("Moon", front, new Vector3(-6f, 11f, 15f), 2.4f, new Color(1f, 0.95f, 0.75f));
             // A lit path from the door into the world.
             for (var i = 0; i < 8; i++)
                 Box($"Path {i}", front, new Vector3(0f, 0.01f, 0.7f + i * 0.8f), new Vector3(0.5f, 0.02f, 0.35f), m_Glow,
@@ -296,9 +295,6 @@ namespace CardboardXR.Demos.Portal
 
         Transform Box(string name, Transform parent, Vector3 position, Vector3 size, Material material, Color color) =>
             Primitive(PrimitiveType.Cube, name, parent, position, size, Quaternion.identity, material, color);
-
-        void Sphere(string name, Transform parent, Vector3 position, float diameter, Color color) =>
-            Primitive(PrimitiveType.Sphere, name, parent, position, Vector3.one * diameter, Quaternion.identity, m_Glow, color);
 
         Transform Quad(string name, Transform parent, Vector3 position, Vector2 size, Quaternion rotation, Material material) =>
             Primitive(PrimitiveType.Quad, name, parent, position, new Vector3(size.x, size.y, 1f), rotation, material, null);

@@ -33,7 +33,7 @@ Each script builds the app, installs it, launches it and prints the start of the
 session log.
 
 ```sh
-zsh Tools/build_and_run.sh                                   # Android
+bash Tools/build_and_run.sh                                  # Android (needs bash; Unity auto-detected on macOS and Linux)
 zsh Tools/ios_build_and_run.sh                               # iOS
 zsh Tools/ios_build_and_run.sh --xcode                       # iOS, reusing the last Unity export
 zsh Tools/ios_launch.sh                                      # iOS, relaunch without rebuilding
@@ -66,7 +66,7 @@ says where the keystore and its password go.
 Development overrides, given the same way on both platforms after the script's own arguments:
 
 ```sh
-zsh Tools/build_and_run.sh --ei dof 3 --ei mono 1
+bash Tools/build_and_run.sh --ei dof 3 --ei mono 1
 zsh Tools/ios_launch.sh --ei dof 3 --ei mono 1
 ```
 
@@ -134,6 +134,11 @@ phone's home screen. The app logs the options it received at startup (`[Stereo] 
 - **Portal** opens a doorway on your floor (look at it and pinch) with a night world beyond it.
   Walk through the frame, off the cable, and the world surrounds you, with your room showing
   through the door behind; walk back through to return. It's in passthrough, so all of it is flat.
+  A holographic solar system floats in your room while you're in the demo: eight planets
+  (and the Moon) circle the sun on faint rings, with name labels. Walk around it; grab each
+  planet or the Moon on its own (the system as a whole isn't draggable) — carry it, scale and
+  turn it with two hands, throw it, and tap it for its card of vital stats; *Recall planets*
+  on the card puts everything back on orbit.
 - **The settings panel**, in every scene: hold a hand up with its palm toward you and a gear button
   appears between your thumb and index finger; pinch to open the panel in front of you. It has
   *Apps* (the app library), *Recenter* and *Scan Room* (in 6DoF: scans again, or ends a scan), and the toggles *6DoF* and *Passthrough*. It follows

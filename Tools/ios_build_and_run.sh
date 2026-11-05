@@ -32,7 +32,7 @@ zsh $P/Tools/ios_launch.sh --check "$@" || exit 1
 
 if [ $XCODE_ONLY = 0 ]; then
     if pgrep -f "Unity.app/Contents/MacOS/Unity" >/dev/null; then echo "Unity is running; close it first"; exit 1; fi
-    zsh $P/Tools/make_videos.sh || exit 1
+    bash "$P/Tools/make_videos.sh" || exit 1
     echo "== Unity export"
     rm -f $LOGS/ios.log
     $U -batchmode -quit -projectPath $P -buildTarget iOS \

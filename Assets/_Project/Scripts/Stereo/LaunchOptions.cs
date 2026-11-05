@@ -8,7 +8,7 @@ namespace CardboardXR.Stereo
 {
     // Development overrides passed when launching the app, so settings can be compared without a
     // rebuild. The launch scripts take them the same way on both platforms:
-    //   zsh Tools/build_and_run.sh --ei dof 6 --ei passthrough 1       (Android)
+    //   bash Tools/build_and_run.sh --ei dof 6 --ei passthrough 1      (Android)
     //   zsh Tools/ios_launch.sh --ei dof 6 --ei passthrough 1          (iOS)
     // On Android they arrive as intent extras from `adb shell am start --ei`. iOS has no intents, so
     // there they arrive as environment variables named with k_EnvironmentPrefix, which devicectl sets

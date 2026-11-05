@@ -33,7 +33,7 @@ COMMIT=$(git -C $WORK/src rev-parse HEAD)
 
 echo "== building $VERSION from ${COMMIT:0:7}"
 # A folder that doesn't exist, so make_videos.sh copies nothing in.
-CARDBOARDXR_VIDEOS=$WORK/none zsh $WORK/src/Tools/make_videos.sh
+CARDBOARDXR_VIDEOS=$WORK/none bash "$WORK/src/Tools/make_videos.sh"
 CARDBOARDXR_VERSION=$VERSION CARDBOARDXR_KEYSTORE=$KEYSTORE CARDBOARDXR_KEYSTORE_PASS=$PASS \
     $U -batchmode -projectPath $WORK/src -buildTarget Android \
     -executeMethod ProjectBootstrap.StereoBuilder.BuildAndroid -logFile $WORK/build.log || true

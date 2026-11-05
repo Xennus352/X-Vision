@@ -1,5 +1,6 @@
 using System;
 using CardboardXR.Stereo;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.Hands;
 
@@ -85,6 +86,8 @@ namespace CardboardXR.Hands
 
         static readonly int k_BaseColor = Shader.PropertyToID("_BaseColor");
         static readonly int k_Color = Shader.PropertyToID("_Color");
+        static readonly int k_EmissionColor = Shader.PropertyToID("_EmissionColor");
+        static readonly int k_Smoothness = Shader.PropertyToID("_Smoothness");
 
         public enum VisualMode { Primitives, Rig }
 
@@ -104,11 +107,20 @@ namespace CardboardXR.Hands
         [SerializeField] float m_JointSize = 0.012f;
         [Tooltip("Primitives mode: bone capsule width.")]
         [SerializeField] float m_BoneWidth = 0.006f;
+        [Tooltip("Primitives mode: the cybernetic look — dark parts with emissive fingertips that pulse gently cyan. Off uses the plain flat finger colors.")]
+        [SerializeField] bool m_CyberneticGlow = true;
         [Tooltip("Time constant, in seconds, for the joints easing toward their poses.")]
         [SerializeField] float m_EaseSeconds = 0.06f;
 
         Material m_CreatedMaterial;
         readonly HandVisual[] m_Hands = { new HandVisual(), new HandVisual() };
+        // Cybernetic glow: one block reused for every property-block write, plus the per-fingertip
+        // state for the pulse.
+        readonly MaterialPropertyBlock m_GlowBlock = new();
+        readonly List<Renderer> m_TipRenderers = new();
+        readonly List<Color> m_TipBase = new();
+        readonly List<Color> m_TipEmission = new();
+        readonly List<float> m_TipPhases = new();
 
         void Awake()
         {
@@ -121,11 +133,13 @@ namespace CardboardXR.Hands
             }
             if (m_Mode == VisualMode.Primitives && m_Material == null)
             {
-                var unlit = Shader.Find("Universal Render Pipeline/Unlit");
-                if (unlit != null)
-                    m_Material = m_CreatedMaterial = new Material(unlit);
+                // The cybernetic look needs an emissive material; if the glow is off, plain Unlit is fine.
+                var shaderName = m_CyberneticGlow ? "Universal Render Pipeline/Lit" : "Universal Render Pipeline/Unlit";
+                var shader = Shader.Find(shaderName);
+                if (shader != null)
+                    m_Material = m_CreatedMaterial = new Material(shader);
                 else
-                    Debug.LogError("[Hands] No URP Unlit shader and no m_Material; the glove will render magenta");
+                    Debug.LogError("[Hands] No URP shader and no m_Material; the glove will render magenta");
             }
             foreach (var hand in m_Hands)
             {
@@ -134,6 +148,8 @@ namespace CardboardXR.Hands
             }
             if (m_Mode == VisualMode.Primitives)
             {
+                if (m_CyberneticGlow && m_Material != null)
+                    m_Material.EnableKeyword("_EMISSION");
                 BuildPrimitives(0, m_LeftRig != null ? m_LeftRig.name : "Left Glove");
                 BuildPrimitives(1, m_RightRig != null ? m_RightRig.name : "Right Glove");
             }
@@ -172,6 +188,8 @@ namespace CardboardXR.Hands
                     continue;
                 poseHand(hand, visual, dt);
             }
+            if (m_CyberneticGlow)
+                PulseGlow();
         }
 
         void poseHand(XRHand hand, HandVisual visual, float dt)
@@ -286,7 +304,63 @@ namespace CardboardXR.Hands
                 renderer.SetPropertyBlock(block);
                 visual.Bones[i] = part.transform;
             }
+            if (m_CyberneticGlow)
+                ApplyCyberneticLook(visual.Spheres, visual.Bones);
             visual.Root.gameObject.SetActive(false);
+        }
+
+        // The cybernetic look: dark parts, each finger's own hue glowing — fingertips bright cyan-ish,
+        // the other joints dim, bones a faint teal — over the shared material. Fingertips get added to
+        // the pulse list; everything else is static.
+        void ApplyCyberneticLook(Transform[] spheres, Transform[] bones)
+        {
+            for (var i = 0; i < spheres.Length; i++)
+            {
+                var renderer = spheres[i].GetComponent<MeshRenderer>();
+                var id = k_Joints[i];
+                var baseColor = JointColor(id);
+                var tip = id.ToString().EndsWith("Tip", StringComparison.Ordinal);
+                var dim = baseColor * 0.22f;
+                var emission = baseColor * (tip ? 2.1f : 0.4f);
+                m_GlowBlock.SetColor(k_BaseColor, dim);
+                m_GlowBlock.SetColor(k_Color, dim);
+                m_GlowBlock.SetColor(k_EmissionColor, emission);
+                m_GlowBlock.SetFloat(k_Smoothness, 0.15f);
+                renderer.SetPropertyBlock(m_GlowBlock);
+                if (tip)
+                {
+                    m_TipRenderers.Add(renderer);
+                    m_TipBase.Add(dim);
+                    m_TipEmission.Add(emission);
+                    m_TipPhases.Add(i * 1.7f);
+                }
+            }
+            foreach (var bone in bones)
+            {
+                var renderer = bone.GetComponent<MeshRenderer>();
+                m_GlowBlock.SetColor(k_BaseColor, new Color(0.12f, 0.14f, 0.16f));
+                m_GlowBlock.SetColor(k_Color, new Color(0.12f, 0.14f, 0.16f));
+                m_GlowBlock.SetColor(k_EmissionColor, new Color(0.08f, 0.25f, 0.32f));
+                m_GlowBlock.SetFloat(k_Smoothness, 0.1f);
+                renderer.SetPropertyBlock(m_GlowBlock);
+            }
+        }
+
+        // The fingertips breathe: a slow sine on each tip's emission, phase-offset per finger.
+        void PulseGlow()
+        {
+            if (m_TipRenderers.Count == 0)
+                return;
+            var time = Time.unscaledTime * 2.1f;
+            for (var i = 0; i < m_TipRenderers.Count; i++)
+            {
+                var pulse = 0.7f + 0.3f * Mathf.Sin(time + m_TipPhases[i]);
+                m_GlowBlock.SetColor(k_BaseColor, m_TipBase[i]);
+                m_GlowBlock.SetColor(k_Color, m_TipBase[i]);
+                m_GlowBlock.SetColor(k_EmissionColor, m_TipEmission[i] * pulse);
+                m_GlowBlock.SetFloat(k_Smoothness, 0.15f);
+                m_TipRenderers[i].SetPropertyBlock(m_GlowBlock);
+            }
         }
 
         // Finds each joint's transform by name under the rig's root; names match the enum, with an

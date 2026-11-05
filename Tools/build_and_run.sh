@@ -1,31 +1,45 @@
-#!/bin/zsh
+#!/bin/bash
 # Runs the EditMode tests, builds the app (Core, the lobby and the demos), installs it on the phone and launches it, then
 # prints ~30 s of the app's tagged logs, the display's refresh-rate votes and the phone's
 # temperatures. Extra arguments go to `am start`, for launch options:
-#   zsh Tools/build_and_run.sh --ei dof 6 --ei passthrough 1
+#   bash Tools/build_and_run.sh --ei dof 6 --ei passthrough 1
 # Options: demo N, dof 3|6, passthrough 1, arView 1, boundaryCm N, handAxes 1..8, pinchStudy 1,
 # imuPosition 0, nativeImu 0, tracker 1, predictionMs N, fps N.
 # For heat: renderScale N (percent, e.g. 70), msaa 1|2|4|8, handHz N (0 = every image).
 # Close the project in the Editor first (batch mode needs the project lock). Logs go to $LOGS.
 # USB drops are common: if install doesn't print "Success", run `adb kill-server; adb start-server`
 # and install again, since the launch that follows would otherwise start the previous build.
+# Unity is found automatically on macOS (/Applications/Unity/Hub/...) and Linux (~/Unity/Hub/...);
+# override with UNITY=/path/to/Unity. Runs on bash (macOS and Linux both ship it); no zsh needed.
 set -u
-P=${0:A:h:h}
-# Another Unity 6000.6 install: UNITY=/path/to/Unity.app/Contents/MacOS/Unity zsh Tools/...
+P=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+# Another Unity 6000.6 install: UNITY=/path/to/Unity bash Tools/...
+if [ -z "${UNITY:-}" ]; then
+    for candidate in \
+        "$HOME/Unity/Hub/Editor/6000.6.0f1/Editor/Unity" \
+        "/Applications/Unity/Hub/Editor/6000.6.0f1/Unity.app/Contents/MacOS/Unity"; do
+        if [ -x "$candidate" ]; then UNITY=$candidate; break; fi
+    done
+fi
 U=${UNITY:-/Applications/Unity/Hub/Editor/6000.6.0f1/Unity.app/Contents/MacOS/Unity}
 # Another app id (an iOS bundle id belongs to the Apple team that first signed it):
-#   CARDBOARDXR_BUNDLE_ID=com.example.cardboardxr zsh Tools/...
+#   CARDBOARDXR_BUNDLE_ID=com.example.cardboardxr bash Tools/...
 PKG=${CARDBOARDXR_BUNDLE_ID:-com.itlens.xvision}
 LOGS=${TMPDIR:-/tmp}/cardboardxr
-mkdir -p $LOGS
-cd $P || exit 1
-if pgrep -f "Unity.app/Contents/MacOS/Unity" >/dev/null; then echo "Unity is running; close it first"; exit 1; fi
+mkdir -p "$LOGS"
+cd "$P" || exit 1
+if [ ! -x "$U" ]; then
+    echo "Unity 6000.6.0f1 not found (looked at \$UNITY and the default install paths)." >&2
+    echo "Set UNITY=/path/to/Unity and run this again." >&2
+    exit 1
+fi
+if pgrep -f "Unity.app/Contents/MacOS/Unity|Hub/Editor/[^/]+/Editor/Unity" >/dev/null; then echo "Unity is running; close it first"; exit 1; fi
 
 echo "== EditMode tests"
-rm -f $LOGS/tests.xml
-$U -batchmode -projectPath $P -runTests -testPlatform EditMode -testResults $LOGS/tests.xml -logFile $LOGS/tests.log
-if [ ! -f $LOGS/tests.xml ]; then grep -E "error CS|Exception" $LOGS/tests.log | head -20; exit 1; fi
-python3 - $LOGS/tests.xml <<'EOF' || exit 1
+rm -f "$LOGS/tests.xml"
+"$U" -batchmode -projectPath "$P" -runTests -testPlatform EditMode -testResults "$LOGS/tests.xml" -logFile "$LOGS/tests.log"
+if [ ! -f "$LOGS/tests.xml" ]; then grep -E "error CS|Exception" "$LOGS/tests.log" | head -20; exit 1; fi
+python3 - "$LOGS/tests.xml" <<'EOF' || exit 1
 import sys, xml.etree.ElementTree as ET
 root = ET.parse(sys.argv[1]).getroot()
 print(f'total={root.get("total")} passed={root.get("passed")} failed={root.get("failed")}')
@@ -36,17 +50,17 @@ sys.exit(0 if root.get('failed') == '0' else 1)
 EOF
 
 echo "== build"
-zsh $P/Tools/make_videos.sh || exit 1
+bash "$P/Tools/make_videos.sh" || exit 1
 # Removed first: a build that never runs would otherwise leave the last one's log to report success.
-rm -f $LOGS/build.log
-$U -batchmode -projectPath $P -buildTarget Android -executeMethod ProjectBootstrap.StereoBuilder.BuildAndroid -logFile $LOGS/build.log
-grep -E "\[Build\]|error CS" $LOGS/build.log | head -20
-grep -q "Build Succeeded" $LOGS/build.log || exit 1
+rm -f "$LOGS/build.log"
+"$U" -batchmode -projectPath "$P" -buildTarget Android -executeMethod ProjectBootstrap.StereoBuilder.BuildAndroid -logFile "$LOGS/build.log"
+grep -E "\[Build\]|error CS" "$LOGS/build.log" | head -20
+grep -q "Build Succeeded" "$LOGS/build.log" || exit 1
 
 echo "== install"
 adb start-server >/dev/null 2>&1
 # Stop it first: installing over the running app and then launching crashes Unity's activity.
-adb shell am force-stop $PKG
+adb shell am force-stop "$PKG"
 # Stop unless it installs: launching anyway would start the build already on the phone, and its logs
 # would look like the new one's. USB drops are common, so this happens.
 INSTALL=$(adb install -r Builds/XVision.apk 2>&1 | tail -1)
@@ -56,7 +70,7 @@ case "$INSTALL" in
     *) echo "Install failed; not launching. Run 'adb kill-server; adb start-server', check 'adb devices', then run this again."; exit 1 ;;
 esac
 adb logcat -c
-adb shell am start -W -n $PKG/com.unity3d.player.UnityPlayerGameActivity "$@" | grep -E "Status|LaunchState"
+adb shell am start -W -n "$PKG/com.unity3d.player.UnityPlayerGameActivity" "$@" | grep -E "Status|LaunchState"
 sleep 32
 adb logcat -d -s Unity:V AndroidRuntime:E | grep -E "\[Demos\]|\[AR\]|\[Pose\]|\[Room\]|\[Anchor\]|\[Hands\]|\[Pinch\]|\[Perf\]|\[Passthrough\]|\[Frames\]|\[Hitch\]|\[Stereo\] (Head|Preferred)|Exception|FATAL" | grep -v AssetPackManager | cut -c1-300 | head -40
 echo "== display votes"

@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &8667210286345582855
+--- !u!1 &6867396149781650882
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,17 +8,17 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 8142630741366632882}
-  - component: {fileID: 3768232337049043351}
-  - component: {fileID: 755757300312167774}
-  - component: {fileID: 4773149323182292396}
-  - component: {fileID: 4744053504351160263}
-  - component: {fileID: 6723590576522623065}
-  - component: {fileID: 7778511185465365107}
-  - component: {fileID: 5837938242330965551}
-  - component: {fileID: 8022100303298624874}
-  - component: {fileID: 7490719198929771763}
-  - component: {fileID: 5350034696941846966}
+  - component: {fileID: 6416922492107864580}
+  - component: {fileID: 3248075443346260933}
+  - component: {fileID: 3352164801507248750}
+  - component: {fileID: 7500378974951835868}
+  - component: {fileID: 7354528749330072952}
+  - component: {fileID: 2876456544816284469}
+  - component: {fileID: 2822337019604150600}
+  - component: {fileID: 2281715685221676664}
+  - component: {fileID: 5831555268654371106}
+  - component: {fileID: 8725371503384716939}
+  - component: {fileID: 9086275224076995404}
   m_Layer: 0
   m_Name: Placed Cube
   m_TagString: Untagged
@@ -26,13 +26,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &8142630741366632882
+--- !u!4 &6416922492107864580
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8667210286345582855}
+  m_GameObject: {fileID: 6867396149781650882}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -41,21 +41,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &3768232337049043351
+--- !u!33 &3248075443346260933
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8667210286345582855}
+  m_GameObject: {fileID: 6867396149781650882}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!65 &755757300312167774
+--- !u!65 &3352164801507248750
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8667210286345582855}
+  m_GameObject: {fileID: 6867396149781650882}
   m_Material: {fileID: 13400000, guid: 5930230e159744d4980ec114ed62f7db, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
@@ -70,13 +70,13 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!23 &4773149323182292396
+--- !u!23 &7500378974951835868
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8667210286345582855}
+  m_GameObject: {fileID: 6867396149781650882}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -119,37 +119,37 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &4744053504351160263
+--- !u!114 &7354528749330072952
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8667210286345582855}
+  m_GameObject: {fileID: 6867396149781650882}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c5f94c6205da9422a940c55a7fa29086, type: 3}
   m_Name: 
   m_EditorClassIdentifier: CardboardXR.Interaction::CardboardXR.Interaction.GazeHighlight
---- !u!114 &6723590576522623065
+--- !u!114 &2876456544816284469
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8667210286345582855}
+  m_GameObject: {fileID: 6867396149781650882}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9b0412d3634f54359a833c4ba1d0d45a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: CardboardXR.Stereo::CardboardXR.Stereo.PlacedObject
---- !u!54 &7778511185465365107
+--- !u!54 &2822337019604150600
 Rigidbody:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8667210286345582855}
+  m_GameObject: {fileID: 6867396149781650882}
   serializedVersion: 5
   m_Mass: 0.3
   m_LinearDamping: 0
@@ -170,13 +170,13 @@ Rigidbody:
   m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 3
---- !u!114 &5837938242330965551
+--- !u!114 &2281715685221676664
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8667210286345582855}
+  m_GameObject: {fileID: 6867396149781650882}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0ad34abafad169848a38072baa96cdb2, type: 3}
@@ -300,37 +300,37 @@ MonoBehaviour:
   m_LimitAngularVelocity: 0
   m_MaxLinearVelocityDelta: 10
   m_MaxAngularVelocityDelta: 20
---- !u!114 &8022100303298624874
+--- !u!114 &5831555268654371106
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8667210286345582855}
+  m_GameObject: {fileID: 6867396149781650882}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3b9e4c225f6d4416c9e8d91e93954bcb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: CardboardXR.Hands::CardboardXR.Hands.CubePhysics
---- !u!114 &7490719198929771763
+--- !u!114 &8725371503384716939
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8667210286345582855}
+  m_GameObject: {fileID: 6867396149781650882}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3f4772e921e8e43c9b4e5bf9d6769021, type: 3}
   m_Name: 
   m_EditorClassIdentifier: CardboardXR.Hands::CardboardXR.Hands.RotateWithHand
---- !u!114 &5350034696941846966
+--- !u!114 &9086275224076995404
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8667210286345582855}
+  m_GameObject: {fileID: 6867396149781650882}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 27c6feaeecc274bcfb74789d9e8b0d9e, type: 3}

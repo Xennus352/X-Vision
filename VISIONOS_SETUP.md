@@ -59,9 +59,9 @@ launch option.
 
 Two modes, one component (also in this repo):
 
-| Mode | What it does | Touch it by |
+| Mode | What it does | Set by |
 |---|---|---|
-| `Primitives` (default) | Capsules (bones) + spheres (joints), colored by finger, from this repo's `m_Material` or an auto-created URP Unlit | Drop it in, works immediately |
+| `Primitives` (default) | Capsules (bones) + spheres (joints), colored by finger, or — with `m_CyberneticGlow` on, the default — **cybernetic**: dark parts, each finger's own hue glowing, bright pulsing fingertips, faint teal bones | Drop it in, works immediately |
 | `Rig` | Poses **your glove's** hierarchy: every descendant named like a joint (`Wrist`, `Palm`, `IndexTip`, …, optional `XR_` prefix) gets the subsystem's world pose, positions **and rotations** | Assign `m_LeftRig` / `m_RightRig` |
 
 Setup for a real glove mesh:
@@ -101,14 +101,23 @@ Requirement 2's “< 2.5 cm threshold” is satisfied on Track A by `SolarSystem
 
 ### Pinch-and-drag / grab / throw (Track A — in this repo)
 
+Two input styles, both built on XR Hands, both consume the head's gaze or the hand directly — pick one per demo:
+
+**Direct (hand carries the object) — `SolarSystemTwoHandController`**
 - One hand pinched: the object is carried at the thumb–index midpoint with a grab offset (no pop; re-anchors when the *other* hand takes over or when one of two releases).
-- Planet-or-system: grabbing within `m_GrabRadius` of a planet grabs/selects that planet (then animates as a frame of the solar system); otherwise the whole system.
-- Throw: the direct-carry path does not throw (it's direct manipulation). For thrown planets,
-  make the planet an `XRGrabInteractable` with **Movement Type = Velocity Tracked** — XRI throws
-  on detach (this project's `CubePhysics` uses exactly that; cap with `k_MaxThrowSpeed`).
-- The solar-system controller additionally does things XRI can't out of the box: chord-delta
-  two-hand zoom (0.25×–4×), chord-frame two-hand 3D rotation (pitch/yaw/roll from the line
-  between the pinches).
+- Planet-or-system: grabbing within `m_GrabRadius` of a planet grabs/selects that planet; otherwise the whole system.
+- Two-hand chord drag does scale (0.25×–4×) and 3D rotation (see §2 two-hand section).
+
+**Gaze-directed (head aims, pinch selects) — `GazePinchGrabber`**
+- Each frame a ray from the head finds the nearest grabbable collider and tints it softly (hover).
+- Pinch (either hand) on the hovered object grabs it: it's carried at the distance it was hit at, offset by the hit point, easing along the gaze — the Vision Pro indirect pattern.
+- Releasing the pinch throws it with the smoothed carry path's velocity over the last `m_ThrowWindow` seconds (clamped to `m_MaxThrowSpeed`). A Rigidbody receives `linearVelocity` (gravity only with `m_ThrowUnderGravity`; otherwise the object drifts); anything else glides with exponential damping until it nearly stops.
+- Gaze is the carry mechanism; losing the hand mid-grab cancels the carry without throwing. Don't run both this and the direct controller on the same planets.
+
+**Throwing planets physics-style (XRI path)**
+For a planet that should genuinely fly and land, make it an `XRGrabInteractable` with **Movement Type = Velocity Tracked** — XRI throws on detach (this project's `CubePhysics` uses exactly that; cap with `k_MaxThrowSpeed`; hands can detach with an open-hand release, which the skeletal path produces naturally).
+
+- The solar-system controller additionally does things XRI can't out of the box: chord-delta two-hand zoom (0.25×–4×), chord-frame two-hand 3D rotation (pitch/yaw/roll from the line between the pinches).
 
 ### Pinch-and-drag / grab / throw (Track B — visionOS MR)
 
@@ -160,7 +169,7 @@ Vision Pro's big advantage is hardware, not app discipline: hand tracking runs *
 | # | Requirement | Status | Files |
 |---|---|---|---|
 | 1 | Skeletal tracking + glove/mesh visualizer | ✅ works today (Track A); ⚠️ visionOS MR carries no skeleton by design; ✅ Metal immersive feeds the same code | `HandGloveView.cs`, `HandSubsystemLocator.cs`, `HandJointsView.cs` (21-dot debug view), `HandSubsystemFeed.cs` |
-| 2 | Pinch / drag / throw / two-hand scale & rotate | ✅ Track A complete (2.5 cm = set `m_PinchDistance`); ✅ Track B via XRI visionOS sample (Multiple select + GeneralGrabTransformer) | `SolarSystemTwoHandController.cs`, `CubePhysics.cs`, `HandInteractorRig.cs`, XRI visionOS sample |
+| 2 | Pinch / drag / throw / two-hand scale & rotate | ✅ Track A complete; direct-carry (`SolarSystemTwoHandController`) and indirect **gaze-directed** grab/throw (`GazePinchGrabber`); two-hand zoom/rotate; ✅ Track B via XRI visionOS sample (Multiple select + GeneralGrabTransformer) | `GazePinchGrabber.cs`, `SolarSystemTwoHandController.cs`, `CubePhysics.cs`, `HandInteractorRig.cs`, XRI visionOS sample |
 | 3 | Fingertip touch & proximity | ✅ `FingertipTouch` (hover 8 cm → touch 3 cm, glow + events, UnityEvent haptic hook) | `FingertipTouch.cs` |
 | 4 | Performance & thermal guidance | ✅ §4 + the previous perf pass (`HandTrackingThrottler`, `DynamicResolutionScaler`, `SurfaceScanCleanup`) | `ThermalState.cs`, `HandTrackingThrottler.cs`, `DynamicResolutionScaler.cs`, `SurfaceScanCleanup.cs` |
 
